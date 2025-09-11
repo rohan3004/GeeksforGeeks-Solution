@@ -1,61 +1,59 @@
-//{ Driver Code Starts
-#include <bits/stdc++.h>
-using namespace std;
-
-
-// } Driver Code Ends
+#include <vector>
+#include <algorithm> // Required for std::max
 
 class Solution {
-  public:
-    int minJumps(vector<int>& arr) {
-        // code here
-        int n = arr.size();
-    if (n <= 1) return 0;
-    if (arr[0] == 0) return -1;
+ public:
+  int minJumps(std::vector<int>& arr) {
+    int n = arr.size();
+
+    // If there's only one element, we are already at the end.
+    if (n <= 1) {
+      return 0;
+    }
+
+    // If the first element is 0, we can't make the first move.
+    if (arr[0] == 0) {
+      return -1;
+    }
+
+    // The farthest index we can reach so far.
+    int max_reach = arr[0];
     
-    int maxReach = arr[0]; // The farthest index that can be reached
-    int steps = arr[0];    // Steps we can still take
-    int jumps = 1;         // Number of jumps made
+    // The number of steps we have left in the current jump.
+    int steps = arr[0];
     
-    for (int i = 1; i < n; i++) {
-        if (i == n - 1) return jumps; // If we reached the end
-        
-        maxReach = max(maxReach, i + arr[i]); // Update the farthest reachable index
-        steps--; // Use a step to move forward
-        
-        if (steps == 0) { // If no steps are left
-            jumps++; // Make another jump
-            if (i >= maxReach) return -1; // If we can't move further, return -1
-            steps = maxReach - i; // Reset steps to the number of steps in the new jump
+    // The number of jumps we've taken (we start with 1 from index 0).
+    int jumps = 1;
+
+    // Iterate from the second element to the end.
+    for (int i = 1; i < n; ++i) {
+      // If we've reached the last element, return the number of jumps.
+      if (i == n - 1) {
+        return jumps;
+      }
+
+      // Update the farthest reachable index.
+      max_reach = std::max(max_reach, i + arr[i]);
+
+      // Use one step to get to the current index.
+      steps--;
+
+      // If we have no steps left, we must take another jump.
+      if (steps == 0) {
+        // Increment the jump counter.
+        jumps++;
+
+        // If our current position is stuck and cannot move forward.
+        // This means max_reach did not extend beyond our current index.
+        if (i >= max_reach) {
+          return -1;
         }
+
+        // Update steps to the number of steps in the new jump.
+        steps = max_reach - i;
+      }
     }
-    return -1;
-    }
+
+    return -1; // Should not be reached given the constraints and logic.
+  }
 };
-
-
-
-//{ Driver Code Starts.
-
-int main() {
-    int t;
-    cin >> t;
-    cin.ignore();
-    while (t--) {
-        int n, i, j;
-        vector<int> arr;
-        string ip;
-        int number;
-        getline(cin, ip);
-        stringstream ss(ip);
-
-        while (ss >> number) {
-            arr.push_back(number);
-        }
-        Solution obj;
-        cout << obj.minJumps(arr) << endl << "~\n";
-    }
-    return 0;
-}
-
-// } Driver Code Ends
