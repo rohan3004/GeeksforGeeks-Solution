@@ -1,20 +1,43 @@
-class Solution {
-  public:
-    vector<int> nextLargerElement(vector<int> &arr) {
-        int n = arr.size();
-        vector<int> res(n, -1);  // Initialize result with -1
-        stack<int> st;           // Monotonic decreasing stack (stores indices)
+#include <vector>
+#include <stack>
 
-        for (int i = 0; i < 2 * n; ++i) {
-            int num = arr[i % n];
-            while (!st.empty() && arr[st.top()] < num) {
-                res[st.top()] = num;
-                st.pop();
-            }
-            if (i < n) {
-                st.push(i);
-            }
-        }
-        return res;
+class Solution {
+ public:
+  /**
+   * @brief Finds the next greater element for each element in a circular array.
+   * * @param arr The input circular integer array.
+   * @return A vector containing the next greater element for each position.
+   */
+  std::vector<int> nextGreater(std::vector<int> &arr) {
+    int n = arr.size();
+    if (n == 0) {
+      return {};
     }
+
+    std::vector<int> nge(n, -1);
+    std::stack<int> s; // Stack to store indices
+
+    // Iterate twice over the array length to handle circularity.
+    // The modulo operator (%) simulates a doubled array arr + arr.
+    for (int i = 2 * n - 1; i >= 0; --i) {
+      int currentIndex = i % n;
+
+      // Maintain a monotonically decreasing stack.
+      // Pop elements that are not greater than the current element.
+      while (!s.empty() && arr[s.top()] <= arr[currentIndex]) {
+        s.pop();
+      }
+
+      // If the stack is not empty, the top element's index points
+      // to the next greater element.
+      if (!s.empty()) {
+        nge[currentIndex] = arr[s.top()];
+      }
+      
+      // Push the current index onto the stack for future comparisons.
+      s.push(currentIndex);
+    }
+
+    return nge;
+  }
 };
