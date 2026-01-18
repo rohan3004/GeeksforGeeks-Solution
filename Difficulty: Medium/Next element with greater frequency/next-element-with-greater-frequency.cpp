@@ -1,38 +1,33 @@
-#include <vector>
-#include <unordered_map>
-#include <stack>
-using namespace std;
-
 class Solution {
   public:
-    vector<int> findGreater(vector<int>& arr) {
+    vector<int> nextFreqGreater(vector<int>& arr) {
         int n = arr.size();
-        vector<int> res(n, -1);
+        
+        // Step 1: Frequency count
         unordered_map<int, int> freq;
-
-        // Step 1: Count frequencies
-        for (int num : arr) {
-            freq[num]++;
+        for (int x : arr) {
+            freq[x]++;
         }
-
-        stack<int> st; // stack will store element values
-
+        
+        vector<int> ans(n, -1);
+        stack<int> st;  // stores elements (not indices)
+        
         // Step 2: Traverse from right to left
-        for (int i = n - 1; i >= 0; --i) {
-            // Pop elements with frequency <= current
+        for (int i = n - 1; i >= 0; i--) {
+            // Remove elements with frequency <= current
             while (!st.empty() && freq[st.top()] <= freq[arr[i]]) {
                 st.pop();
             }
-
+            
             // If stack not empty, top is the answer
             if (!st.empty()) {
-                res[i] = st.top();
+                ans[i] = st.top();
             }
-
-            // Push current element as a candidate for left elements
+            
+            // Push current element
             st.push(arr[i]);
         }
-
-        return res;
+        
+        return ans;
     }
 };
