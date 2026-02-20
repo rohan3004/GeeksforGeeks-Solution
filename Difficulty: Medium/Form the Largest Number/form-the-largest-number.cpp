@@ -7,36 +7,34 @@ using namespace std;
 
 class Solution {
 public:
-  /**
-   * @brief Arranges an array of non-negative integers to form the largest possible number.
-   * * @param arr A vector of integers.
-   * @return A string representing the largest number formed by concatenating the integers.
-   */
-  string findLargest(vector<int> &arr) {
-    // 1. Convert all integers to their string representations.
-    vector<string> s_arr;
-    for (int num : arr) {
-      s_arr.push_back(to_string(num));
+    // Custom comparator to decide the order of two strings
+    static bool compare(string a, string b) {
+        // Return true if a+b is strictly greater than b+a
+        return a + b > b + a;
     }
 
-    // 2. Sort the strings using a custom lambda comparator.
-    // The comparator checks which order of concatenation (a+b vs b+a) yields a larger number.
-    sort(s_arr.begin(), s_arr.end(), [](const string& a, const string& b) {
-      return a + b > b + a;
-    });
+    string findLargest(vector<int> &arr) {
+        // Step 1: Convert all integers to strings
+        vector<string> str_arr;
+        for (int num : arr) {
+            str_arr.push_back(to_string(num));
+        }
 
-    // 3. Handle the edge case where the array contains only zeros.
-    // If the first element after sorting is "0", the entire number is 0.
-    if (s_arr[0] == "0") {
-      return "0";
+        // Step 2: Sort the array of strings using the custom comparator
+        sort(str_arr.begin(), str_arr.end(), compare);
+
+        // Step 3: Handle the edge case where the array has multiple 0s
+        // If the largest number after sorting is "0", the entire result is just "0"
+        if (str_arr[0] == "0") {
+            return "0";
+        }
+
+        // Step 4: Concatenate the sorted strings to form the largest number
+        string result = "";
+        for (string s : str_arr) {
+            result += s;
+        }
+
+        return result;
     }
-
-    // 4. Concatenate the sorted strings to get the final result.
-    string result = "";
-    for (const string& s : s_arr) {
-      result += s;
-    }
-
-    return result;
-  }
 };
