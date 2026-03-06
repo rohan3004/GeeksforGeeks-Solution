@@ -1,74 +1,45 @@
-#include <string>
-#include <vector>
-#include <climits>
-
 class Solution {
-  public:
-    string smallestWindow(string &s, string &p) {
-        // Edge case: if the pattern is longer than the string, no solution is possible.
-        if (p.length() > s.length()) {
-            return "";
-        }
+public:
+    string minWindow(string &s, string &p) {
+        int n = s.length();
+        int m = p.length();
+        if (m > n) return "";
 
-        // Create a frequency map for the characters in the pattern string 'p'.
-        // We use a vector of size 256 to cover all possible ASCII characters.
-        std::vector<int> p_map(256, 0);
-        for (char c : p) {
-            p_map[c]++;
-        }
+        // Frequency maps for characters in p and the current window
+        int p_freq[26] = {0};
+        int window_freq[26] = {0};
+        
+        for (char c : p) p_freq[c - 'a']++;
 
-        int start = 0;              // The start pointer of the sliding window
-        int required = p.length();  // The count of characters from 'p' we still need to find
-        int min_len = INT_MAX;      // The length of the smallest valid window found so far
-        int start_index = -1;       // The starting index of that smallest window
+        int left = 0, min_len = INT_MAX, start_idx = -1;
+        int count = 0; // Number of characters currently satisfied in the window
 
-        // The 'end' pointer expands the window to the right
-        for (int end = 0; end < s.length(); ++end) {
-            char char_end = s[end];
+        for (int right = 0; right < n; right++) {
+            int char_idx = s[right] - 'a';
+            window_freq[char_idx]++;
 
-            // If the character at 'end' is one we need (its count in p_map is > 0),
-            // it means we've fulfilled one requirement.
-            if (p_map[char_end] > 0) {
-                required--;
+            // If the current character is needed and its count is within limits
+            if (p_freq[char_idx] != 0 && window_freq[char_idx] <= p_freq[char_idx]) {
+                count++;
             }
-            // Decrement the count for the current character in our map.
-            // This also handles surplus characters (the count will become negative).
-            p_map[char_end]--;
 
-            // When 'required' is 0, we have a valid window.
-            // Now, we try to shrink it from the left to find the smallest one.
-            while (required == 0) {
-                int current_len = end - start + 1;
-
-                // If this window is the smallest yet, update our result.
-                if (current_len < min_len) {
-                    min_len = current_len;
-                    start_index = start;
+            // If the window contains all characters of p
+            if (count == m) {
+                // Try to shrink the window from the left
+                while (p_freq[s[left] - 'a'] == 0 || window_freq[s[left] - 'a'] > p_freq[s[left] - 'a']) {
+                    window_freq[s[left] - 'a']--;
+                    left++;
                 }
 
-                // To shrink, we remove the character at 'start' from the window.
-                char char_start = s[start];
-
-                // We "give back" the character by incrementing its count in the map.
-                p_map[char_start]++;
-
-                // If the count of this character becomes positive again, it means
-                // our window is no longer valid without it. So, we increment 'required'.
-                if (p_map[char_start] > 0) {
-                    required++;
+                // Update the minimum window
+                int window_size = right - left + 1;
+                if (window_size < min_len) {
+                    min_len = window_size;
+                    start_idx = left;
                 }
-
-                // Move the start pointer to the right, effectively shrinking the window.
-                start++;
             }
         }
 
-        // If start_index was never updated, no valid window was found.
-        if (start_index == -1) {
-            return "";
-        }
-
-        // Return the smallest window found.
-        return s.substr(start_index, min_len);
+        return (start_idx == -1) ? "" : s.substr(start_idx, min_len);
     }
 };
