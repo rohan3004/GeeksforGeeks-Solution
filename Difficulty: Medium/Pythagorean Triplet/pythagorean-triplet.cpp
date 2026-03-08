@@ -1,45 +1,41 @@
+#include <vector>
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
+
 class Solution {
 public:
     bool pythagoreanTriplet(vector<int>& arr) {
-        const int MAXV = 1000;
-        // 1) Build frequency table
-        vector<int> freq(MAXV+1, 0);
-        for (int v : arr) {
-            freq[v]++;
-        }
-        // 2) Extract sorted list of distinct values
-        vector<int> vals;
-        for (int v = 1; v <= MAXV; v++)
-            if (freq[v] > 0)
-                vals.push_back(v);
+        int max_val = 0;
         
-        int m = vals.size();
-        // 3) Check every pair (a, b) among distinct values
-        for (int i = 0; i < m; i++) {
-            int a = vals[i];
-            for (int j = i; j < m; j++) {
-                int b = vals[j];
-                long long c2 = 1LL*a*a + 1LL*b*b;
-                int c = int(std::llround(std::sqrt(c2)));
-                // must be perfect square and in range
-                if (c <= MAXV && 1LL*c*c == c2 && freq[c] > 0) {
-                    // Now ensure we have enough distinct indices:
-                    if (a == b && b == c) {
-                        if (freq[a] >= 3) return true;
-                    }
-                    else if (a == b) {
-                        if (freq[a] >= 2) return true;
-                    }
-                    else if (b == c) {
-                        if (freq[b] >= 2) return true;
-                    }
-                    else if (a == c) {
-                        if (freq[a] >= 2) return true;
-                    }
-                    else {
-                        // all three distinct
-                        return true;
-                    }
+        // Find the maximum element in the array
+        for (int x : arr) {
+            max_val = max(max_val, x);
+        }
+        
+        // Create an array to map the presence of each number
+        vector<bool> present(max_val + 1, false);
+        for (int x : arr) {
+            present[x] = true;
+        }
+        
+        // Check for all possible combinations of 'a' and 'b'
+        for (int a = 1; a <= max_val; a++) {
+            // Only proceed if 'a' is actually in our original array
+            if (!present[a]) continue;
+            
+            for (int b = a + 1; b <= max_val; b++) {
+                // Only proceed if 'b' is in our original array
+                if (!present[b]) continue;
+                
+                // Calculate expected c^2
+                int c_sq = a * a + b * b;
+                int c = sqrt(c_sq);
+                
+                // Check if c is a perfect square, fits in our max range, and exists in the array
+                if (c * c == c_sq && c <= max_val && present[c]) {
+                    return true;
                 }
             }
         }
