@@ -1,44 +1,35 @@
+#include <iostream>
 #include <string>
-#include <algorithm>
 #include <vector>
 
+using namespace std;
+
 class Solution {
-  public:
+public:
     string largestSwap(string &s) {
-        // Create a copy of s and sort it in descending order to represent the ideal string.
-        string sorted_s = s;
-        sort(sorted_s.rbegin(), sorted_s.rend());
-
-        int first_mismatch_idx = -1;
+        // Array to store the last occurrence index of each digit '0'-'9'
+        vector<int> last_idx(10, -1);
+        int n = s.length();
         
-        // Find the first position from the left where s differs from its ideal sorted version.
-        for (int i = 0; i < s.length(); ++i) {
-            if (s[i] != sorted_s[i]) {
-                first_mismatch_idx = i;
-                break;
+        // Step 1: Record the last occurrence of each digit
+        for (int i = 0; i < n; ++i) {
+            last_idx[s[i] - '0'] = i;
+        }
+        
+        // Step 2: Find the first digit that can be swapped with a larger one
+        for (int i = 0; i < n; ++i) {
+            // Check for a larger digit from '9' down to 's[i] + 1'
+            for (int d = 9; d > s[i] - '0'; --d) {
+                // If a larger digit appears AFTER the current index 'i'
+                if (last_idx[d] > i) {
+                    // Swap them to make the string lexicographically largest
+                    swap(s[i], s[last_idx[d]]);
+                    return s; // At most ONE swap is allowed, so we are done
+                }
             }
         }
-
-        // If no mismatch is found, the string is already the largest possible.
-        if (first_mismatch_idx == -1) {
-            return s;
-        }
-
-        // The character that should be at the mismatch position.
-        char target_char = sorted_s[first_mismatch_idx];
-        int swap_target_idx = -1;
-
-        // Find the rightmost occurrence of the target character in the original string.
-        for (int j = s.length() - 1; j >= 0; --j) {
-            if (s[j] == target_char) {
-                swap_target_idx = j;
-                break;
-            }
-        }
-
-        // Perform the single, optimal swap.
-        swap(s[first_mismatch_idx], s[swap_target_idx]);
         
+        // If no swap can make the string larger, return it as is
         return s;
     }
 };
