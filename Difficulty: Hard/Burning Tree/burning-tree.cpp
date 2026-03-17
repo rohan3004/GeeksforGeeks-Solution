@@ -1,82 +1,100 @@
+#include <queue>
+#include <unordered_map>
+#include <unordered_set>
+
+/*
+class Node {
+  public:
+    int data;
+    Node *left;
+    Node *right;
+
+    Node(int val) {
+        data = val;
+        left = right = NULL;
+    }
+};
+*/
+
 class Solution {
   public:
-    // Function to map each node to its parent and find the target node.
-    Node* mapParents(Node* root, unordered_map<Node*, Node*>& parentMap, int target) {
-        queue<Node*> q;
-        q.push(root);
+    int minTime(Node* root, int target) {
+        if (!root) return 0;
+        
+        std::unordered_map<Node*, Node*> parentMap;
         Node* targetNode = nullptr;
-
+        
+        // Step 1: Map parents and find the target node
+        std::queue<Node*> q;
+        q.push(root);
+        
         while (!q.empty()) {
-            Node* current = q.front();
+            Node* curr = q.front();
             q.pop();
-
-            if (current->data == target) {
-                targetNode = current;
+            
+            // If we found the target value, store its node pointer
+            if (curr->data == target) {
+                targetNode = curr;
             }
-
-            if (current->left) {
-                parentMap[current->left] = current;
-                q.push(current->left);
+            
+            // Map left child to current node (parent)
+            if (curr->left) {
+                parentMap[curr->left] = curr;
+                q.push(curr->left);
             }
-
-            if (current->right) {
-                parentMap[current->right] = current;
-                q.push(current->right);
+            
+            // Map right child to current node (parent)
+            if (curr->right) {
+                parentMap[curr->right] = curr;
+                q.push(curr->right);
             }
         }
-        return targetNode;
-    }
-
-    // Function to perform BFS and calculate time to burn the tree.
-    int burnTree(Node* targetNode, unordered_map<Node*, Node*>& parentMap) {
-        unordered_map<Node*, bool> visited;
-        queue<Node*> q;
-        q.push(targetNode);
-        visited[targetNode] = true;
-
+        
+        // Step 2: BFS to simulate the burning process
+        std::unordered_set<Node*> visited;
+        std::queue<Node*> burnQueue;
+        
+        burnQueue.push(targetNode);
+        visited.insert(targetNode);
+        
         int time = 0;
-
-        while (!q.empty()) {
-            int size = q.size();
-            bool didSpread = false;
-
+        
+        while (!burnQueue.empty()) {
+            int size = burnQueue.size();
+            bool burned_any = false;
+            
             for (int i = 0; i < size; i++) {
-                Node* current = q.front();
-                q.pop();
-
-                // Check left child
-                if (current->left && !visited[current->left]) {
-                    q.push(current->left);
-                    visited[current->left] = true;
-                    didSpread = true;
+                Node* curr = burnQueue.front();
+                burnQueue.pop();
+                
+                // Spread fire to left child
+                if (curr->left && visited.find(curr->left) == visited.end()) {
+                    burnQueue.push(curr->left);
+                    visited.insert(curr->left);
+                    burned_any = true;
                 }
-
-                // Check right child
-                if (current->right && !visited[current->right]) {
-                    q.push(current->right);
-                    visited[current->right] = true;
-                    didSpread = true;
+                
+                // Spread fire to right child
+                if (curr->right && visited.find(curr->right) == visited.end()) {
+                    burnQueue.push(curr->right);
+                    visited.insert(curr->right);
+                    burned_any = true;
                 }
-
-                // Check parent
-                if (parentMap[current] && !visited[parentMap[current]]) {
-                    q.push(parentMap[current]);
-                    visited[parentMap[current]] = true;
-                    didSpread = true;
+                
+                // Spread fire to parent
+                if (parentMap.find(curr) != parentMap.end() && visited.find(parentMap[curr]) == visited.end()) {
+                    burnQueue.push(parentMap[curr]);
+                    visited.insert(parentMap[curr]);
+                    burned_any = true;
                 }
             }
-
-            if (didSpread) {
+            
+            // If the fire successfully spread to any new node, 1 second has passed
+            if (burned_any) {
                 time++;
             }
         }
-
+        
         return time;
-    }
-
-    int minTime(Node* root, int target) {
-        unordered_map<Node*, Node*> parentMap;
-        Node* targetNode = mapParents(root, parentMap, target);
-        return burnTree(targetNode, parentMap);
     }
 };
