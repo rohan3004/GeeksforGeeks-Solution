@@ -1,97 +1,66 @@
-//{ Driver Code Starts
-#include <bits/stdc++.h>
+#include <vector>
+#include <queue>
+
 using namespace std;
-
-
-// } Driver Code Ends
 
 class Solution {
   public:
-    int orangesRotting(vector<vector<int>>& grid) {
-            if (grid.empty() || grid[0].empty())
-                return 0;
-            int rows = grid.size(), cols = grid[0].size();
-            
-            // Queue for BFS: each element is a pair (row, col)
-            queue<pair<int, int>> rottenQueue;
-            int freshCount = 0;
-            
-            // Add all initial rotten oranges to the queue and count the fresh oranges.
-            for (int i = 0; i < rows; i++) {
-                for (int j = 0; j < cols; j++) {
-                    if (grid[i][j] == 2) {
-                        rottenQueue.push(make_pair(i, j));
-                    } else if (grid[i][j] == 1) {
-                        freshCount++;
-                    }
+    int orangesRot(vector<vector<int>>& mat) {
+        int n = mat.size();
+        if (n == 0) return 0;
+        int m = mat[0].size();
+        
+        queue<pair<int, int>> q;
+        int fresh_count = 0;
+        
+        // Step 1: Push all rotten oranges to the queue and count fresh oranges
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < m; ++j) {
+                if (mat[i][j] == 2) {
+                    q.push({i, j});
+                } else if (mat[i][j] == 1) {
+                    fresh_count++;
                 }
             }
+        }
+        
+        // If there are no fresh oranges to begin with, it takes 0 time
+        if (fresh_count == 0) return 0;
+        
+        int time = 0;
+        
+        // Direction arrays to easily check up, down, left, right
+        int dx[] = {-1, 1, 0, 0};
+        int dy[] = {0, 0, -1, 1};
+        
+        // Step 2: Multi-source BFS
+        while (!q.empty() && fresh_count > 0) {
+            int q_size = q.size();
             
-            // If there are no fresh oranges, return 0.
-            if (freshCount == 0)
-                return 0;
-            
-            int time = 0;
-            // Directions for adjacent cells: up, down, left, right.
-            vector<pair<int, int>> directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-            
-            // Process the queue until all possible oranges are rotted.
-            while (!rottenQueue.empty()) {
-                int currentLevelSize = rottenQueue.size();
-                bool rottedThisRound = false;
+            // Process all oranges that rot at the current time step
+            for (int i = 0; i < q_size; ++i) {
+                int x = q.front().first;
+                int y = q.front().second;
+                q.pop();
                 
-                // Process all the rotten oranges in the current time frame.
-                for (int i = 0; i < currentLevelSize; i++) {
-                    pair<int, int> cell = rottenQueue.front();
-                    rottenQueue.pop();
-                    int r = cell.first;
-                    int c = cell.second;
+                // Check all 4 adjacent directions
+                for (int dir = 0; dir < 4; ++dir) {
+                    int nx = x + dx[dir];
+                    int ny = y + dy[dir];
                     
-                    for (size_t j = 0; j < directions.size(); j++) {
-                        int newRow = r + directions[j].first;
-                        int newCol = c + directions[j].second;
-                        
-                        // Check if the cell is valid and contains a fresh orange.
-                        if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && grid[newRow][newCol] == 1) {
-                            grid[newRow][newCol] = 2;      // Rot this fresh orange.
-                            rottenQueue.push(make_pair(newRow, newCol));
-                            freshCount--;                // Decrement fresh count.
-                            rottedThisRound = true;
-                        }
+                    // If the adjacent cell is within bounds and has a fresh orange
+                    if (nx >= 0 && nx < n && ny >= 0 && ny < m && mat[nx][ny] == 1) {
+                        mat[nx][ny] = 2;       // Mark as rotten
+                        fresh_count--;         // Decrement the fresh count
+                        q.push({nx, ny});      // Push to queue to rot others in the next minute
                     }
                 }
-                
-                // Increase time only if a new round of rotting occurred.
-                if (rottedThisRound)
-                    time++;
             }
-            
-            // If there are still fresh oranges left, return -1.
-            return freshCount == 0 ? time : -1;
+            // Increment time after processing one full level (one minute)
+            time++;
         }
-};
-
-
-//{ Driver Code Starts.
-int main() {
-    int tc;
-    cin >> tc;
-    while (tc--) {
-        int n, m;
-        cin >> n >> m;
-        vector<vector<int>> mat(n, vector<int>(m, -1));
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                cin >> mat[i][j];
-            }
-        }
-        Solution obj;
-        int ans = obj.orangesRotting(mat);
-        cout << ans << "\n";
-
-        cout << "~"
-             << "\n";
+        
+        // Step 3: Check if there are any fresh oranges left
+        return fresh_count == 0 ? time : -1;
     }
-    return 0;
-}
-// } Driver Code Ends
+};
