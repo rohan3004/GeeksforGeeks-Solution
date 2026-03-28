@@ -1,91 +1,75 @@
-//{ Driver Code Starts
-#include <bits/stdc++.h>
-using namespace std;
-
-
-// } Driver Code Ends
-
 class Solution {
-  public:
-    vector<int> articulationPoints(int V, vector<vector<int>>& edges) {
-          // Convert edge list to adjacency list
-          vector<vector<int>> adj(V);
-          for (auto &edge : edges) {
-              adj[edge[0]].push_back(edge[1]);
-              adj[edge[1]].push_back(edge[0]);
-          }
-  
-          vector<int> disc(V, -1), low(V, -1), parent(V, -1);
-          vector<bool> visited(V, false);
-          vector<bool> isArticulation(V, false);
-          vector<int> result;
-  
-          function<void(int, int&)> dfs = [&](int u, int &time) {
-              visited[u] = true;
-              disc[u] = low[u] = ++time;
-              int children = 0;
-  
-              for (int v : adj[u]) {
-                  if (!visited[v]) {
-                      children++;
-                      parent[v] = u;
-                      dfs(v, time);
-  
-                      // Check if the subtree rooted at v has a connection to one of the ancestors of u
-                      low[u] = min(low[u], low[v]);
-  
-                      // Articulation point conditions
-                      if ((parent[u] == -1 && children > 1) ||  // Root with more than one child
-                          (parent[u] != -1 && low[v] >= disc[u])) {  // Low value of v >= discovery time of u
-                          isArticulation[u] = true;
-                      }
-                  } else if (v != parent[u]) { // Update low value for back edge
-                      low[u] = min(low[u], disc[v]);
-                  }
-              }
-          };
-  
-          int time = 0;
-          for (int i = 0; i < V; i++) {
-              if (!visited[i]) {
-                  dfs(i, time);
-              }
-          }
-  
-          for (int i = 0; i < V; i++) {
-              if (isArticulation[i]) {
-                  result.push_back(i);
-              }
-          }
-  
-          return result.empty() ? vector<int>{-1} : result;
-      }
-};
-
-
-//{ Driver Code Starts.
-int main() {
-    int tc;
-    cin >> tc;
-    while (tc--) {
-        int V, E;
-        cin >> V >> E;
-        vector<vector<int>> edges;
-        for (int i = 0; i < E; i++) {
-            int u, v;
-            cin >> u >> v;
-            edges.push_back({u, v});
+private:
+    int timer = 0;
+    
+    void dfs(int node, int parent, vector<int>& vis, vector<int>& tin, vector<int>& low, 
+             vector<int>& mark, vector<vector<int>>& adj) {
+        
+        vis[node] = 1;
+        tin[node] = low[node] = ++timer;
+        int children = 0;
+        
+        for (auto it : adj[node]) {
+            if (it == parent) continue;
+            
+            if (!vis[it]) {
+                children++;
+                dfs(it, node, vis, tin, low, mark, adj);
+                
+                // Update low of the current node after the DFS call
+                low[node] = min(low[node], low[it]);
+                
+                // Condition for articulation point
+                if (low[it] >= tin[node] && parent != -1) {
+                    mark[node] = 1;
+                }
+            } else {
+                // Back-edge found
+                low[node] = min(low[node], tin[it]);
+            }
         }
-        Solution obj;
-        vector<int> ans = obj.articulationPoints(V, edges);
-        sort(ans.begin(), ans.end());
-        for (auto i : ans)
-            cout << i << " ";
-        cout << "\n";
-
-        cout << "~"
-             << "\n";
+        
+        // Root node condition for articulation point
+        if (parent == -1 && children > 1) {
+            mark[node] = 1;
+        }
     }
-    return 0;
-}
-// } Driver Code Ends
+
+public:
+    vector<int> articulationPoints(int V, vector<vector<int>>& edges) {
+        // Step 1: Create the adjacency list
+        vector<vector<int>> adj(V);
+        for (auto edge : edges) {
+            adj[edge[0]].push_back(edge[1]);
+            adj[edge[1]].push_back(edge[0]);
+        }
+        
+        // Step 2: Initialize required arrays
+        vector<int> vis(V, 0);
+        vector<int> tin(V, 0); // Time of insertion/discovery
+        vector<int> low(V, 0); // Lowest reachable time
+        vector<int> mark(V, 0); // To store unique articulation points
+        
+        // Step 3: Run DFS for all components
+        for (int i = 0; i < V; i++) {
+            if (!vis[i]) {
+                dfs(i, -1, vis, tin, low, mark, adj);
+            }
+        }
+        
+        // Step 4: Collect results
+        vector<int> ans;
+        for (int i = 0; i < V; i++) {
+            if (mark[i] == 1) {
+                ans.push_back(i);
+            }
+        }
+        
+        // Step 5: Handle edge case where no articulation point is found
+        if (ans.empty()) {
+            return {-1};
+        }
+        
+        return ans;
+    }
+};
